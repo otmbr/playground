@@ -231,9 +231,12 @@ export class AudioEngine {
   startRecording() {
     if (!this.recDest) return;
     this._chunks = [];
+    if (!window.MediaRecorder) { this.recorder = null; return; }
+    const canCheck = typeof MediaRecorder.isTypeSupported === "function";
     let mime = "";
-    for (const m of ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"]) {
-      if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) { mime = m; break; }
+    // Safari has no webm; mp4/aac is its working audio container.
+    for (const m of ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac"]) {
+      if (canCheck && MediaRecorder.isTypeSupported(m)) { mime = m; break; }
     }
     try {
       this.recorder = new MediaRecorder(this.recDest.stream, mime ? { mimeType: mime } : undefined);

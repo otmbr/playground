@@ -1,6 +1,7 @@
 // LOW NOISE — bootstrap. Wires the DOM to the LOW RUN game.
 
 import { Game } from "./game.js";
+import { CityDub } from "./citydub.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -11,7 +12,7 @@ const dom = {
   onReport: showReport,
 };
 
-let game = null;
+let game = null;     // active mode controller (Game or CityDub)
 let lastBlob = null;
 
 const screens = {
@@ -24,11 +25,15 @@ function show(screen) {
   if (screen) screens[screen].classList.remove("hidden");
 }
 
-async function startRun() {
-  show(null);
+function clearHud() {
   $("noiseprint").textContent = "";
   $("state-label").textContent = "";
   $("timer").textContent = "";
+}
+
+async function startRun() {
+  show(null);
+  clearHud();
   game = new Game(dom);
   window.__g = game; // dev/debug handle
   try {
@@ -36,6 +41,23 @@ async function startRun() {
   } catch (err) {
     console.error(err);
     dom.hud.state.textContent = "AUDIO BLOCKED — TAP REDUCE AGAIN";
+    show("start");
+  }
+}
+
+async function startCityDub() {
+  show(null);
+  clearHud();
+  game = new CityDub(dom);
+  window.__g = game;
+  try {
+    await game.start();
+  } catch (err) {
+    console.error(err);
+    dom.hud.state.textContent =
+      err.message === "microphone-required"
+        ? "CITY DUB NEEDS THE MIC — ENABLE IT, THEN RETRY"
+        : "AUDIO BLOCKED — TAP TO RETRY";
     show("start");
   }
 }
@@ -55,7 +77,8 @@ function showReport(report, blob) {
 
 async function shareLoop() {
   if (!lastBlob) return;
-  const ext = lastBlob.type.includes("mp4") ? "m4a" : "webm";
+  const t = lastBlob.type || "";
+  const ext = (t.includes("mp4") || t.includes("aac") || t.includes("m4a")) ? "m4a" : "webm";
   const file = new File([lastBlob], `low-noise-loop.${ext}`, { type: lastBlob.type });
   const text = "This is what my world sounded like after I reduced it. #LOWNOISE";
 
@@ -75,7 +98,8 @@ async function shareLoop() {
 }
 
 $("btn-reduce").addEventListener("click", startRun);
-$("btn-again").addEventListener("click", startRun);
+$("btn-citydub").addEventListener("click", startCityDub);
+$("btn-again").addEventListener("click", () => { game = null; show("start"); });
 $("btn-share").addEventListener("click", shareLoop);
 
 // Idle ambient field behind the start screen.

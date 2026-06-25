@@ -99,8 +99,10 @@ html, body {
   padding: 8vw;
   gap: 18px;
   background: radial-gradient(circle at 50% 45%, rgba(10, 42, 74, 0.35), rgba(0,0,0,0.92) 70%);
+  -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
 }
+.mode-btn { margin-top: 28px; }
 .screen.hidden { display: none; }
 
 h1 {
