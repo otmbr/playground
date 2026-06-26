@@ -211,20 +211,6 @@ body {
   color: var(--muted);
 }
 
-.dial {
-  display: grid;
-  gap: 6px;
-  font-size: 12px;
-}
-.dial span {
-  display: flex;
-  justify-content: space-between;
-  color: var(--muted);
-}
-.dial em {
-  font-style: normal;
-  color: var(--fg);
-}
 .observer {
   display: grid;
   gap: 6px;
@@ -241,32 +227,84 @@ body[data-appmode="explore"] .advanced {
   display: none;
 }
 
-input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 4px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
+/* ---------- rotary knobs ---------- */
+.knob-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 12px 8px;
+}
+.knob {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  --k: var(--accent);
+}
+.knob-dial {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  cursor: ns-resize;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
   outline: none;
 }
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--accent);
-  cursor: pointer;
-  box-shadow: 0 0 10px rgba(127, 208, 255, 0.7);
+.knob-dial svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
 }
-input[type="range"]::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border: none;
-  border-radius: 50%;
-  background: var(--accent);
-  cursor: pointer;
+.knob-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.13);
+  stroke-width: 7;
+  stroke-linecap: round;
+  transform: rotate(135deg);
+  transform-origin: 50% 50%;
+}
+.knob-value {
+  fill: none;
+  stroke: var(--k);
+  stroke-width: 7;
+  stroke-linecap: round;
+  transform: rotate(135deg);
+  transform-origin: 50% 50%;
+  filter: drop-shadow(0 0 5px var(--k));
+  transition: stroke-dasharray 0.05s linear;
+}
+.knob-dot {
+  fill: #fff;
+  filter: drop-shadow(0 0 3px var(--k));
+}
+.knob-num {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+}
+.knob-dial.active {
+  cursor: grabbing;
+}
+.knob-dial.active .knob-value,
+.knob-dial:focus-visible .knob-value {
+  stroke-width: 8.5;
+}
+.knob-dial:focus-visible {
+  filter: drop-shadow(0 0 6px var(--k));
+}
+.knob-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  text-align: center;
 }
 
 .buttons {

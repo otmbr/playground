@@ -1,12 +1,11 @@
-import type { AppMode, ObserverMode, Store } from "../core/SimulationState.ts";
+import type { AppMode, ObserverMode, SimulationState, Store } from "../core/SimulationState.ts";
 import { recomputeDerived } from "../core/PhysicsToyModel.ts";
+import { Knob } from "./Knob.ts";
 
-// Wires the control-deck DOM to the store. Also reflects external state changes
-// (e.g. radius shrinking during collapse) back onto the sliders.
+// Wires the control-deck DOM to the store. The parameter inputs are modern
+// rotary knobs (see Knob.ts); this class builds them, binds them to the store
+// and reflects external state changes back onto them.
 
-function input(id: string): HTMLInputElement {
-  return document.getElementById(id) as HTMLInputElement;
-}
 function el(id: string): HTMLElement {
   return document.getElementById(id) as HTMLElement;
 }
@@ -23,20 +22,7 @@ export interface ControlCallbacks {
 }
 
 export class Controls {
-  private mass = input("mass");
-  private radius = input("radius");
-  private vacuum = input("vacuumEnergy");
-  private shell = input("shellTension");
-  private noise = input("quantumNoise");
-  private entropy = input("entropyLeakage");
-
-  private massLabel = el("massLabel");
-  private radiusLabel = el("radiusLabel");
-  private vacuumLabel = el("vacuumLabel");
-  private shellLabel = el("shellLabel");
-  private noiseLabel = el("noiseLabel");
-  private entropyLabel = el("entropyLabel");
-
+  private knobs: Record<string, Knob> = {};
   private interiorButton = el("interiorButton") as HTMLButtonElement;
   private muteButton = el("muteButton") as HTMLButtonElement;
 
@@ -44,12 +30,7 @@ export class Controls {
     private store: Store,
     private cb: ControlCallbacks,
   ) {
-    this.bindSlider(this.mass, "massSolar");
-    this.bindRadius();
-    this.bindSlider(this.vacuum, "vacuumEnergy");
-    this.bindSlider(this.shell, "shellTension");
-    this.bindSlider(this.noise, "quantumNoise");
-    this.bindSlider(this.entropy, "entropyLeakage");
+    this.buildKnobs();
 
     el("collapseButton").addEventListener("click", () => this.cb.onCollapse());
     el("resetButton").addEventListener("click", () => this.cb.onReset());
@@ -77,25 +58,66 @@ export class Controls {
     document.body.dataset.appmode = "explore";
   }
 
-  private bindSlider(elm: HTMLInputElement, key: "massSolar" | "vacuumEnergy" | "shellTension" | "quantumNoise" | "entropyLeakage"): void {
-    elm.addEventListener("input", () => {
-      this.store.update((s) => {
-        (s as any)[key] = parseFloat(elm.value);
-        recomputeDerived(s);
-      });
-    });
-  }
+  private buildKnobs(): void {
+    const grid = el("knobGrid");
+    const s = this.store.state;
 
-  // Radius also sets initialRadiusKm so a fresh collapse starts from here.
-  private bindRadius(): void {
-    this.radius.addEventListener("input", () => {
-      this.store.update((s) => {
-        if (s.collapsing) return; // don't fight the animation
-        s.radiusKm = parseFloat(this.radius.value);
-        s.initialRadiusKm = s.radiusKm;
-        recomputeDerived(s);
+    const make = (
+      key: keyof SimulationState,
+      label: string,
+      min: number,
+      max: number,
+      step: number,
+      color: string,
+      format: (v: number) => string,
+      advanced = false,
+      onInput?: (v: number) => void,
+    ) => {
+      const knob = new Knob({
+        label,
+        min,
+        max,
+        step,
+        value: s[key] as number,
+        color,
+        advanced,
+        format,
+        onInput:
+          onInput ??
+          ((v) =>
+            this.store.update((st) => {
+              (st as unknown as Record<string, number>)[key as string] = v;
+              recomputeDerived(st);
+            })),
       });
-    });
+      this.knobs[key as string] = knob;
+      grid.appendChild(knob.el);
+    };
+
+    make("massSolar", "Mass", 3, 50, 0.1, "#7fd0ff", (v) => `${v.toFixed(1)} M☉`);
+    // Radius writes both radius and initial radius, but only when idle so it
+    // does not fight the collapse animation.
+    make(
+      "radiusKm",
+      "Radius",
+      5,
+      250,
+      0.5,
+      "#7fd0ff",
+      (v) => `${v < 10 ? v.toFixed(1) : Math.round(v)} km`,
+      false,
+      (v) =>
+        this.store.update((st) => {
+          if (st.collapsing) return;
+          st.radiusKm = v;
+          st.initialRadiusKm = v;
+          recomputeDerived(st);
+        }),
+    );
+    make("vacuumEnergy", "Vacuum", 0, 1, 0.001, "#15d9f2", (v) => v.toFixed(2));
+    make("shellTension", "Shell", 0, 1, 0.001, "#c08bff", (v) => v.toFixed(2));
+    make("quantumNoise", "Noise", 0, 1, 0.001, "#ffb070", (v) => v.toFixed(2), true);
+    make("entropyLeakage", "Entropy", 0, 1, 0.001, "#ff6fae", (v) => v.toFixed(2), true);
   }
 
   setInteriorEnabled(enabled: boolean): void {
@@ -107,22 +129,14 @@ export class Controls {
     this.muteButton.textContent = muted ? "Unmute" : "Mute";
   }
 
-  /** Reflect store values onto controls (numbers + slider positions). */
+  /** Reflect store values onto the knobs (skips any knob being dragged). */
   render(): void {
     const s = this.store.state;
-    this.massLabel.textContent = `${s.massSolar.toFixed(1)} M☉`;
-    this.radiusLabel.textContent = `${s.radiusKm.toFixed(s.radiusKm < 10 ? 2 : 0)} km`;
-    this.vacuumLabel.textContent = s.vacuumEnergy.toFixed(2);
-    this.shellLabel.textContent = s.shellTension.toFixed(2);
-    this.noiseLabel.textContent = s.quantumNoise.toFixed(2);
-    this.entropyLabel.textContent = s.entropyLeakage.toFixed(2);
-
-    // keep sliders in sync when state is driven externally (collapse/reset/preset)
-    if (document.activeElement !== this.mass) this.mass.value = String(s.massSolar);
-    if (document.activeElement !== this.radius) this.radius.value = String(s.radiusKm);
-    if (document.activeElement !== this.vacuum) this.vacuum.value = String(s.vacuumEnergy);
-    if (document.activeElement !== this.shell) this.shell.value = String(s.shellTension);
-    if (document.activeElement !== this.noise) this.noise.value = String(s.quantumNoise);
-    if (document.activeElement !== this.entropy) this.entropy.value = String(s.entropyLeakage);
+    this.knobs.massSolar?.setValue(s.massSolar);
+    this.knobs.radiusKm?.setValue(s.radiusKm);
+    this.knobs.vacuumEnergy?.setValue(s.vacuumEnergy);
+    this.knobs.shellTension?.setValue(s.shellTension);
+    this.knobs.quantumNoise?.setValue(s.quantumNoise);
+    this.knobs.entropyLeakage?.setValue(s.entropyLeakage);
   }
 }

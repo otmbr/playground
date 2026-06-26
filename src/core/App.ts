@@ -25,16 +25,21 @@ import { Starfield } from "../objects/Starfield.ts";
 import { InteriorUniverse } from "../objects/InteriorUniverse.ts";
 
 import { AudioEngine } from "../audio/AudioEngine.ts";
+import { CameraRig, type CameraHome } from "./CameraRig.ts";
 import { HUD } from "../ui/HUD.ts";
 import { Controls } from "../ui/Controls.ts";
 import { OUTCOME_COPY } from "../ui/labels.ts";
 
-// Camera "home" positions per observer mode.
-const CAMERA_HOME: Record<ObserverMode, THREE.Vector3> = {
-  external: new THREE.Vector3(0, 1.4, 7),
-  falling: new THREE.Vector3(0, 0.3, 3.2),
-  interior: new THREE.Vector3(0, 0, 18),
+// Camera "home" poses per observer mode, in spherical orbit coordinates.
+const CAMERA_HOME: Record<ObserverMode, CameraHome> = {
+  external: { theta: 0.5, phi: 1.2, radius: 7 },
+  falling: { theta: 0.0, phi: 1.5, radius: 3.0 },
+  interior: { theta: 0.0, phi: 1.4, radius: 18 },
 };
+
+function haptic(pattern: number | number[]): void {
+  navigator.vibrate?.(pattern);
+}
 
 export class App {
   readonly store = new Store(createInitialState());
@@ -57,6 +62,7 @@ export class App {
   private audio = new AudioEngine();
   private hud = new HUD();
   private controls: Controls;
+  private rig: CameraRig;
 
   private flashEl = document.getElementById("flash") as HTMLElement;
   private reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -77,8 +83,8 @@ export class App {
       0.01,
       1000,
     );
-    this.camera.position.copy(CAMERA_HOME.external);
-    this.camera.lookAt(0, 0, 0);
+    this.rig = new CameraRig(this.camera);
+    this.rig.snapTo(CAMERA_HOME.external);
 
     this.scene.add(
       this.starfield.points,
@@ -116,9 +122,111 @@ export class App {
     });
 
     this.loadFromHash();
+    this.setupInput();
 
     window.addEventListener("resize", () => this.onResize());
     this.onResize();
+  }
+
+  // ----- pointer / touch input (orbit, pinch-zoom, double-tap) ----------
+
+  private setupInput(): void {
+    const el = this.renderer.domElement;
+    el.style.touchAction = "none";
+
+    const pointers = new Map<number, { x: number; y: number }>();
+    let lastX = 0;
+    let lastY = 0;
+    let lastDist = 0;
+    let downTime = 0;
+    let downX = 0;
+    let downY = 0;
+    let lastTap = 0;
+
+    el.addEventListener("pointerdown", (e) => {
+      el.setPointerCapture(e.pointerId);
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size === 1) {
+        this.rig.startDrag();
+        lastX = e.clientX;
+        lastY = e.clientY;
+        downTime = performance.now();
+        downX = e.clientX;
+        downY = e.clientY;
+      } else if (pointers.size === 2) {
+        const p = [...pointers.values()];
+        lastDist = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+      }
+    });
+
+    el.addEventListener("pointermove", (e) => {
+      if (!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size === 1) {
+        this.rig.drag(e.clientX - lastX, e.clientY - lastY);
+        lastX = e.clientX;
+        lastY = e.clientY;
+      } else if (pointers.size === 2) {
+        const p = [...pointers.values()];
+        const dist = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+        if (lastDist > 0) this.rig.zoom(lastDist / dist);
+        lastDist = dist;
+      }
+    });
+
+    const onUp = (e: PointerEvent) => {
+      const wasSingle = pointers.size === 1;
+      pointers.delete(e.pointerId);
+      try {
+        el.releasePointerCapture(e.pointerId);
+      } catch {
+        /* already released */
+      }
+      if (pointers.size < 2) lastDist = 0;
+      if (pointers.size === 0) {
+        this.rig.endDrag();
+        // tap vs drag: short, with little movement
+        if (wasSingle) {
+          const moved = Math.hypot(e.clientX - downX, e.clientY - downY);
+          const quick = performance.now() - downTime < 250;
+          if (moved < 8 && quick) {
+            const now = performance.now();
+            if (now - lastTap < 320) {
+              this.rig.animateTo(this.currentHome(), this.reducedMotion ? 0.4 : 1.0);
+              this.hud.caption("View reset.");
+              haptic(15);
+              lastTap = 0;
+            } else {
+              lastTap = now;
+            }
+          }
+        }
+      } else if (pointers.size === 1) {
+        const p = [...pointers.values()][0];
+        lastX = p.x;
+        lastY = p.y;
+        this.rig.startDrag();
+      }
+    };
+    el.addEventListener("pointerup", onUp);
+    el.addEventListener("pointercancel", onUp);
+
+    el.addEventListener(
+      "wheel",
+      (e) => {
+        e.preventDefault();
+        this.rig.zoom(e.deltaY > 0 ? 1.08 : 0.92);
+      },
+      { passive: false },
+    );
+
+    el.addEventListener("dblclick", () => {
+      this.rig.animateTo(this.currentHome(), this.reducedMotion ? 0.4 : 1.0);
+    });
+  }
+
+  private currentHome(): CameraHome {
+    return CAMERA_HOME[this.store.state.observerMode];
   }
 
   /** Called after the intro gate; unlocks audio and starts the render loop. */
@@ -128,6 +236,9 @@ export class App {
     this.clock.start();
     this.renderer.setAnimationLoop(() => this.tick());
     this.hud.caption("System online. Steer the collapse.");
+    if (window.matchMedia("(pointer: coarse)").matches) {
+      this.hud.caption("Drag to rotate · pinch to zoom · double-tap to reset view.");
+    }
   }
 
   // ----- interactions ---------------------------------------------------
@@ -146,6 +257,7 @@ export class App {
     });
     this.interior.setActive(false);
     this.hud.caption("Fuel exhausted. Collapse begins.");
+    haptic(20);
 
     const proxy = { t: 0 };
     const duration = this.reducedMotion ? 4 : 8;
@@ -176,6 +288,7 @@ export class App {
     this.hud.caption("[Audio caption] Interior harmonic bloom detected.");
     this.hud.caption("Mini Big Bang detected. Collapse halted by vacuum pressure.");
     this.audio.strikeShell(0.7);
+    haptic([30, 40, 60]);
     if (!this.reducedMotion) this.doFlash();
   }
 
@@ -206,28 +319,19 @@ export class App {
       return;
     }
     this.hud.caption("Entering interior. Scale inversion engaged.");
+    haptic(25);
 
     // Section 8 trick: dolly the camera through the thin shell, then switch
     // scenes and reframe at cosmological scale.
-    const cam = this.camera;
-    gsap.killTweensOf(cam.position);
-    gsap.to(cam.position, {
-      x: 0,
-      y: 0,
-      z: 0.05,
-      duration: this.reducedMotion ? 0.8 : 2.4,
-      ease: "power4.inOut",
-      onComplete: () => {
-        this.store.update((st) => {
-          st.insideInterior = true;
-          st.observerMode = "interior";
-        });
-        this.interior.setActive(true);
-        cam.position.set(0, 0, 18);
-        cam.lookAt(0, 0, 0);
-        this.audio.strikeShell(0.4);
-        this.hud.caption("Inside is larger than outside. Spacetime expands.");
-      },
+    this.rig.tweenRadius(0.4, this.reducedMotion ? 0.8 : 2.4, () => {
+      this.store.update((st) => {
+        st.insideInterior = true;
+        st.observerMode = "interior";
+      });
+      this.interior.setActive(true);
+      this.rig.snapTo(CAMERA_HOME.interior);
+      this.audio.strikeShell(0.4);
+      this.hud.caption("Inside is larger than outside. Spacetime expands.");
     });
   }
 
@@ -237,8 +341,7 @@ export class App {
       st.observerMode = "external";
     });
     this.interior.setActive(false);
-    this.camera.position.copy(CAMERA_HOME.external);
-    this.camera.lookAt(0, 0, 0);
+    this.rig.snapTo(CAMERA_HOME.external);
     document.querySelectorAll(".obs").forEach((b) => b.classList.remove("active"));
     document.querySelector('.obs[data-observer="external"]')?.classList.add("active");
   }
@@ -262,15 +365,7 @@ export class App {
     }
     if (this.store.state.insideInterior) this.exitInterior();
     this.store.patch({ observerMode: mode });
-    gsap.killTweensOf(this.camera.position);
-    gsap.to(this.camera.position, {
-      x: CAMERA_HOME[mode].x,
-      y: CAMERA_HOME[mode].y,
-      z: CAMERA_HOME[mode].z,
-      duration: this.reducedMotion ? 0.5 : 1.6,
-      ease: "power3.inOut",
-      onUpdate: () => this.camera.lookAt(0, 0, 0),
-    });
+    this.rig.animateTo(CAMERA_HOME[mode], this.reducedMotion ? 0.5 : 1.6);
   }
 
   private setMode(mode: AppMode): void {
@@ -346,15 +441,8 @@ export class App {
 
     this.audio.update(s);
 
-    // gentle idle orbit when external and not collapsing
-    if (s.observerMode === "external" && !s.insideInterior) {
-      const t = this.clock.elapsedTime * 0.08;
-      const radius = this.camera.position.length();
-      if (!this.collapseTween?.isActive() && !gsap.isTweening(this.camera.position)) {
-        this.camera.position.x = Math.sin(t) * radius * 0.12;
-        this.camera.lookAt(0, 0, 0);
-      }
-    }
+    // orbit camera (user drag + inertia + gentle idle auto-rotate)
+    this.rig.update(dt);
 
     this.renderer.render(this.scene, this.camera);
   }
