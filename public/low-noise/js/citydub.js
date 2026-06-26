@@ -10,8 +10,9 @@ const RUN_SECONDS = 300; // 5 minutes
 const NOTE_TO_KEY = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
 export class CityDub {
-  constructor(dom) {
+  constructor(dom, options = {}) {
     this.dom = dom; // { canvas, hud:{noiseprint,state,timer}, callout, onReport }
+    this.runSeconds = options.seconds || RUN_SECONDS;
     this.ctx = null;
     this.analyzer = null;
     this.dub = null;
@@ -68,7 +69,7 @@ export class CityDub {
     this._updateHud(a);
     this._milestones();
 
-    if (this.elapsed >= RUN_SECONDS) return this._finish();
+    if (this.elapsed >= this.runSeconds) return this._finish();
 
     // --- visuals (reuse the LOW NOISE field, driven by the dub state) ---
     const act = this.dub.activity;
@@ -93,7 +94,7 @@ export class CityDub {
   };
 
   _updateHud(a) {
-    const left = Math.max(0, RUN_SECONDS - this.elapsed);
+    const left = Math.max(0, this.runSeconds - this.elapsed);
     const m = Math.floor(left / 60), s = Math.floor(left % 60);
     this.dom.hud.timer.textContent = `${m}:${String(s).padStart(2, "0")}`;
     const bpm = Math.round(a.bpm);

@@ -244,17 +244,21 @@ export class AudioEngine {
       this.recorder = null;
       return;
     }
-    this.recorder.ondataavailable = (e) => { if (e.data.size) this._chunks.push(e.data); };
-    this.recorder.start();
+    this._mime = mime || "audio/webm";
+    this.recorder.ondataavailable = (e) => { if (e.data && e.data.size) this._chunks.push(e.data); };
+    // Timeslice so data flushes periodically — some mobile browsers emit
+    // nothing until stop() otherwise, yielding an empty (unshareable) blob.
+    this.recorder.start(1000);
   }
 
   stopRecording() {
     return new Promise((resolve) => {
       if (!this.recorder || this.recorder.state === "inactive") return resolve(null);
       this.recorder.onstop = () => {
-        const blob = new Blob(this._chunks, { type: this._chunks[0]?.type || "audio/webm" });
-        resolve(blob);
+        if (!this._chunks.length) return resolve(null);
+        resolve(new Blob(this._chunks, { type: this._chunks[0]?.type || this._mime || "audio/webm" }));
       };
+      try { this.recorder.requestData?.(); } catch (_) {}
       this.recorder.stop();
     });
   }

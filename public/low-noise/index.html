@@ -25,25 +25,48 @@
 
   <!-- START screen -->
   <section id="screen-start" class="screen">
-    <h1>LOW&nbsp;NOISE</h1>
-    <p class="tagline">Music from below the noise.</p>
-    <p class="hint">Put on headphones.<br />Make the world quieter.</p>
-    <button id="btn-reduce" class="btn-primary">REDUCE</button>
-    <p class="micro" id="start-micro">LOW RUN · 90s · tilt · hold · swipe · tap · stillness</p>
-    <button id="btn-citydub" class="btn-ghost mode-btn">CITY DUB</button>
-    <p class="micro">walk 5 min · the street composes the track · auto</p>
-    <a class="hub-link" href="../">↑ PLAYGROUND · ALSO: GRAVASTAR LAB</a>
+    <div class="start-inner">
+      <h1>LOW&nbsp;NOISE</h1>
+      <p class="tagline">Music from below the noise.</p>
+      <p class="hint">Headphones on. Make the world quieter.</p>
+
+      <div class="mode-card">
+        <button id="btn-reduce" class="btn-primary">REDUCE</button>
+        <p class="micro">LOW RUN · tilt · hold · swipe · tap · stillness</p>
+        <div class="seg" id="seg-lowrun" role="group" aria-label="Run length">
+          <button class="seg-opt" type="button" data-sec="60">60s</button>
+          <button class="seg-opt is-active" type="button" data-sec="90">90s</button>
+          <button class="seg-opt" type="button" data-sec="120">2m</button>
+        </div>
+      </div>
+
+      <div class="mode-card">
+        <button id="btn-citydub" class="btn-ghost mode-btn">CITY DUB</button>
+        <p class="micro">walk · the street composes the track · auto</p>
+        <div class="seg" id="seg-citydub" role="group" aria-label="Walk length">
+          <button class="seg-opt" type="button" data-min="3">3m</button>
+          <button class="seg-opt is-active" type="button" data-min="5">5m</button>
+          <button class="seg-opt" type="button" data-min="10">10m</button>
+        </div>
+      </div>
+
+      <a class="hub-link" href="../">↑ PLAYGROUND · ALSO: GRAVASTAR LAB</a>
+    </div>
   </section>
 
   <!-- REPORT screen -->
   <section id="screen-report" class="screen hidden">
-    <h2>LOW NOISE REPORT</h2>
-    <pre id="report-body"></pre>
-    <div class="report-actions">
-      <button id="btn-share" class="btn-primary">YOUR LOOP IS READY</button>
-      <button id="btn-again" class="btn-ghost">← MODES</button>
+    <div class="start-inner">
+      <h2>LOW NOISE REPORT</h2>
+      <pre id="report-body"></pre>
+      <p class="loop-caption" id="loop-caption">YOUR LOOP IS READY</p>
+      <audio id="loop-playback" controls playsinline preload="auto" class="loop-audio hidden"></audio>
+      <div class="report-actions">
+        <button id="btn-share" class="btn-primary">SHARE LOOP</button>
+        <button id="btn-again" class="btn-ghost">← MODES</button>
+      </div>
+      <p id="share-hint" class="share-hint"></p>
     </div>
-    <audio id="loop-playback" controls class="hidden"></audio>
   </section>
 
   <script type="module" src="js/main.js"></script>

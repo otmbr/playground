@@ -11,8 +11,9 @@ const LOW_HOLD_NEEDED = 3.5;   // s of clean signal to drop into LOW
 const CLEAN_THRESHOLD = 0.78;
 
 export class Game {
-  constructor(dom) {
+  constructor(dom, options = {}) {
     this.dom = dom; // { canvas, hud:{noiseprint,state,timer}, callout, onReport }
+    this.runSeconds = options.seconds || RUN_SECONDS;
     this.audio = new AudioEngine();
     this.input = new InputManager(dom.canvas);
     this.visual = new Visual(dom.canvas);
@@ -76,7 +77,7 @@ export class Game {
       this.elapsed += dt;
       this._tickGameplay(dt);
       this._updateTimer();
-      if (this.elapsed >= RUN_SECONDS) return this._finish();
+      if (this.elapsed >= this.runSeconds) return this._finish();
     }
 
     this.input.update();
@@ -224,7 +225,7 @@ export class Game {
     if (label) this._callout(label);
   }
   _updateTimer() {
-    const left = Math.max(0, RUN_SECONDS - this.elapsed);
+    const left = Math.max(0, this.runSeconds - this.elapsed);
     this.dom.hud.timer.textContent = left.toFixed(1).padStart(4, "0");
   }
   _callout(text, ms = 1200) {
