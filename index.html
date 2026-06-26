@@ -46,11 +46,17 @@
       </section>
 
       <!-- Heads-up display / readouts -->
-      <section id="hud">
-        <p class="eyebrow">Interactive theoretical physics model</p>
-        <h1>GRAVASTAR LAB</h1>
-        <p id="stateLabel" class="state">Stable star</p>
+      <section id="hud" class="panel">
+        <div class="panel-head">
+          <div class="panel-head-text">
+            <p class="eyebrow">Interactive theoretical physics model</p>
+            <h1>GRAVASTAR LAB</h1>
+            <p id="stateLabel" class="state">Stable star</p>
+          </div>
+          <button class="panel-toggle" data-target="hud" aria-label="Details ein-/ausklappen" aria-expanded="true">▾</button>
+        </div>
 
+        <div class="panel-body">
         <div class="readout">
           <span>Mass</span>
           <strong id="massValue">12.0 M☉</strong>
@@ -79,18 +85,21 @@
         <div id="speculationBadge" class="badge theoretical">Theoretical model</div>
 
         <div id="captions" class="captions" aria-live="polite"></div>
+        </div>
       </section>
 
       <!-- Control deck -->
-      <section id="controls">
-        <div class="control-head">
+      <section id="controls" class="panel">
+        <div class="control-head panel-head">
           <span class="deck-title">Control Deck</span>
           <div class="mode-switch" role="tablist" aria-label="App mode">
             <button class="mode active" data-mode="explore">Explore</button>
             <button class="mode" data-mode="lab">Lab</button>
           </div>
+          <button class="panel-toggle" data-target="controls" aria-label="Bedienfeld ein-/ausklappen" aria-expanded="true">▾</button>
         </div>
 
+        <div class="panel-body">
         <label class="dial">
           <span>Mass <em id="massLabel">12.0 M☉</em></span>
           <input id="mass" type="range" min="3" max="50" value="12" step="0.1" />
@@ -141,6 +150,7 @@
         <div class="buttons">
           <button id="muteButton" aria-pressed="false">Mute</button>
           <button id="shareButton">Share Seed</button>
+        </div>
         </div>
       </section>
 

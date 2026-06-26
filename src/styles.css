@@ -139,6 +139,29 @@ body {
   align-items: center;
   justify-content: space-between;
 }
+
+/* Collapsible panels (the toggle only appears on small screens). */
+.panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.panel-toggle {
+  display: none; /* hidden on desktop */
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
+  align-items: center;
+  justify-content: center;
+}
+#controls .panel-body {
+  display: grid;
+  gap: 12px;
+}
 .deck-title {
   font-size: 11px;
   text-transform: uppercase;
@@ -390,24 +413,66 @@ button.primary {
 
 /* ---------- responsive ---------- */
 @media (max-width: 760px) {
+  /* The toggle appears; panels keep a compact head and collapse their body so
+     the star in the center is never hidden behind the UI. */
+  .panel-toggle {
+    display: inline-flex;
+  }
+  /* IDs raise specificity on #controls .panel-body, so the collapse rule must
+     match the id too in order to win. */
+  #hud.panel.collapsed .panel-body,
+  #controls.panel.collapsed .panel-body {
+    display: none;
+  }
+  .panel-toggle {
+    transition: transform 0.2s ease;
+  }
+  .panel.collapsed .panel-toggle {
+    transform: rotate(-90deg);
+  }
+
   #hud {
-    width: calc(100vw - 40px);
-    top: 12px;
-    left: 12px;
-    padding: 14px 16px;
+    width: calc(100vw - 20px);
+    top: 10px;
+    left: 10px;
+    padding: 10px 13px;
+  }
+  #hud .eyebrow {
+    display: none;
   }
   #hud h1 {
-    font-size: 18px;
+    font-size: 16px;
+    margin: 0;
+  }
+  .state {
+    margin: 3px 0 0;
+    font-size: 13px;
+  }
+  /* Keep an expanded body bounded so it can scroll instead of filling the
+     screen and re-covering the star. */
+  #hud .panel-body {
+    margin-top: 10px;
+    max-height: 42vh;
+    overflow-y: auto;
+  }
+
+  #controls {
+    width: calc(100vw - 20px);
+    right: 10px;
+    left: 10px;
+    bottom: 10px;
+    padding: 10px 13px;
+    gap: 10px;
+  }
+  #controls .panel-body {
+    margin-top: 4px;
+    max-height: 56vh;
+    overflow-y: auto;
+    /* leave room for the iOS scrollbar / rounded corners */
+    padding-right: 2px;
   }
   .captions {
     display: none;
-  }
-  #controls {
-    width: calc(100vw - 24px);
-    right: 12px;
-    left: 12px;
-    bottom: 12px;
-    padding: 14px 16px;
   }
   #honesty {
     display: none;
