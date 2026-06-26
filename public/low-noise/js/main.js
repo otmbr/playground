@@ -29,8 +29,8 @@ function show(screen) {
 
 function clearHud() {
   $("noiseprint").textContent = "";
-  $("state-label").textContent = "";
-  $("timer").textContent = "";
+  $("state-label").textContent = "STANDBY";
+  $("timer").textContent = "00:00";
 }
 
 // ---- length selectors --------------------------------------------------
@@ -54,6 +54,7 @@ const citydubMinutes = setupSeg("seg-citydub", "min");
 async function startRun() {
   show(null);
   clearHud();
+  document.body.classList.add("rec");
   await acquireWakeLock();
   game = new Game(dom, { seconds: lowrunSeconds() });
   window.__g = game;
@@ -62,6 +63,7 @@ async function startRun() {
   } catch (err) {
     console.error(err);
     releaseWakeLock();
+    document.body.classList.remove("rec");
     dom.hud.state.textContent = "AUDIO BLOCKED — TAP REDUCE AGAIN";
     show("start");
   }
@@ -70,6 +72,7 @@ async function startRun() {
 async function startCityDub() {
   show(null);
   clearHud();
+  document.body.classList.add("rec");
   await acquireWakeLock();
   game = new CityDub(dom, { seconds: citydubMinutes() * 60 });
   window.__g = game;
@@ -78,6 +81,7 @@ async function startCityDub() {
   } catch (err) {
     console.error(err);
     releaseWakeLock();
+    document.body.classList.remove("rec");
     dom.hud.state.textContent =
       err.message === "microphone-required"
         ? "CITY DUB NEEDS THE MIC — ENABLE IT, THEN RETRY"
@@ -88,7 +92,8 @@ async function startCityDub() {
 
 function showReport(report, blob) {
   releaseWakeLock();
-  clearHud(); // drop the leftover HUD line so it doesn't bleed under the report
+  document.body.classList.remove("rec");
+  clearHud(); // reset the LCD so it reads STANDBY behind the report
   lastReport = report;
   lastBlob = blob;
   $("report-body").textContent = report.text;
@@ -166,7 +171,13 @@ async function shareLoop() {
 
 $("btn-reduce").addEventListener("click", startRun);
 $("btn-citydub").addEventListener("click", startCityDub);
-$("btn-again").addEventListener("click", () => { releaseWakeLock(); game = null; show("start"); });
+$("btn-again").addEventListener("click", () => {
+  releaseWakeLock();
+  document.body.classList.remove("rec");
+  clearHud();
+  game = null;
+  show("start");
+});
 $("btn-share").addEventListener("click", shareLoop);
 
 // Coming back from a locked/backgrounded screen: resume the audio graph.

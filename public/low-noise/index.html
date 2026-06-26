@@ -11,27 +11,48 @@
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+  <!-- the recorder's display window -->
   <canvas id="field"></canvas>
 
-  <!-- HUD overlay -->
-  <div id="hud">
-    <div id="noiseprint" class="hud-line"></div>
-    <div id="state-label" class="hud-line"></div>
-    <div id="timer" class="hud-line"></div>
+  <!-- device chassis / bezel chrome (decorative, never blocks touch) -->
+  <div id="deck" aria-hidden="true">
+    <span class="screw s-tl"></span><span class="screw s-tr"></span>
+    <span class="screw s-bl"></span><span class="screw s-br"></span>
+    <div id="deck-brand">
+      <span class="pwr-led"></span>
+      LOW&nbsp;NOISE
+      <span class="brand-model">URBAN FIELD RECORDER · NS-90</span>
+    </div>
   </div>
 
-  <!-- Big centered callouts: REDUCE, LOW FOUND, etc. -->
+  <!-- LCD readout strip (live during a run) -->
+  <div id="hud">
+    <span id="rec-dot" aria-hidden="true"></span>
+    <div class="lcd-stack">
+      <div id="state-label" class="hud-line">STANDBY</div>
+      <div id="noiseprint" class="hud-line"></div>
+    </div>
+    <div id="timer" class="hud-line lcd-time">00:00</div>
+  </div>
+
+  <!-- Big centered callouts: LOW FOUND, etc. -->
   <div id="callout"></div>
 
-  <!-- START screen -->
+  <!-- START / control panel face -->
   <section id="screen-start" class="screen">
-    <div class="start-inner">
-      <h1>LOW&nbsp;NOISE</h1>
-      <p class="tagline">Music from below the noise.</p>
-      <p class="hint">Headphones on. Make the world quieter.</p>
+    <div class="start-inner panel">
+      <div class="plate">
+        <h1>LOW&nbsp;NOISE</h1>
+        <p class="tagline">Urban field recorder</p>
+      </div>
+
+      <div class="vu" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
 
       <div class="mode-card">
-        <button id="btn-reduce" class="btn-primary">REDUCE</button>
+        <span class="card-label">A · Reduce</span>
+        <button id="btn-reduce" class="btn-rec"><span class="rec-ring"></span>REDUCE</button>
         <p class="micro">LOW RUN · tilt · hold · swipe · tap · stillness</p>
         <div class="seg-row">
           <span class="seg-label">Length<span class="seg-unit">min:sec</span></span>
@@ -44,7 +65,8 @@
       </div>
 
       <div class="mode-card">
-        <button id="btn-citydub" class="btn-ghost mode-btn">CITY DUB</button>
+        <span class="card-label">B · City Dub</span>
+        <button id="btn-citydub" class="btn-transport mode-btn">▸ CITY DUB</button>
         <p class="micro">walk · the street composes the track · auto</p>
         <div class="seg-row">
           <span class="seg-label">Length<span class="seg-unit">min:sec</span></span>
@@ -60,16 +82,19 @@
     </div>
   </section>
 
-  <!-- REPORT screen -->
+  <!-- REPORT / saved take -->
   <section id="screen-report" class="screen hidden">
-    <div class="start-inner">
-      <h2>LOW NOISE REPORT</h2>
+    <div class="start-inner panel">
+      <div class="plate">
+        <h2>◉ TAKE SAVED</h2>
+        <p class="plate-sub">LOW NOISE REPORT</p>
+      </div>
       <pre id="report-body"></pre>
       <p class="loop-caption" id="loop-caption">YOUR LOOP IS READY</p>
       <audio id="loop-playback" controls playsinline preload="auto" class="loop-audio hidden"></audio>
       <div class="report-actions">
-        <button id="btn-share" class="btn-primary">SHARE LOOP</button>
-        <button id="btn-again" class="btn-ghost">← MODES</button>
+        <button id="btn-share" class="btn-export">⇪ SHARE</button>
+        <button id="btn-again" class="btn-transport">◄ MODES</button>
       </div>
       <p id="share-hint" class="share-hint"></p>
     </div>
