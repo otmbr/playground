@@ -35,11 +35,16 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Assemble site (project page at root, app under /gravstar)
+      - name: Assemble site (project page at root, apps in subfolders)
         run: |
           rm -rf _site
           mkdir -p _site/gravstar
           cp -r dist/* _site/gravstar/
+          # The LOW NOISE app ships via public/low-noise and lands in dist/;
+          # surface it as a sibling app at /low-noise instead of nested.
+          if [ -d _site/gravstar/low-noise ]; then
+            mv _site/gravstar/low-noise _site/low-noise
+          fi
           cp landing/index.html _site/index.html
 
       - name: Configure Pages
