@@ -187,3 +187,17 @@ button {
 }
 #loop-playback { margin-top: 12px; width: 80vw; max-width: 360px; }
 #loop-playback.hidden { display: none; }
+
+/* Discreet link back to the project hub (/playground/). */
+.hub-link {
+  margin-top: 30px;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--noise);
+  opacity: 0.45;
+  text-decoration: none;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+.hub-link:active,
+.hub-link:hover { opacity: 0.9; color: var(--signal); }
