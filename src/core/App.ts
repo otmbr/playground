@@ -28,6 +28,7 @@ import { AudioEngine } from "../audio/AudioEngine.ts";
 import { CameraRig, type CameraHome } from "./CameraRig.ts";
 import { HUD } from "../ui/HUD.ts";
 import { Controls } from "../ui/Controls.ts";
+import { Scope } from "../ui/Scope.ts";
 import { OUTCOME_COPY } from "../ui/labels.ts";
 
 // Camera "home" poses per observer mode, in spherical orbit coordinates.
@@ -63,6 +64,7 @@ export class App {
   private hud = new HUD();
   private controls: Controls;
   private rig: CameraRig;
+  private scope = new Scope(document.getElementById("scope") as HTMLCanvasElement);
 
   private flashEl = document.getElementById("flash") as HTMLElement;
   private reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -108,10 +110,12 @@ export class App {
       onReset: () => this.reset(),
       onEnterInterior: () => this.enterInterior(),
       onToggleHonesty: () => this.hud.toggleLegend(),
+      onScience: () => this.hud.toggleScience(),
       onToggleMute: () => this.toggleMute(),
       onShare: () => this.shareSeed(),
       onObserver: (m) => this.setObserver(m),
       onMode: (m) => this.setMode(m),
+      onHint: (h) => this.hud.caption(h),
     });
 
     // Re-render UI whenever state changes.
@@ -443,6 +447,17 @@ export class App {
 
     // orbit camera (user drag + inertia + gentle idle auto-rotate)
     this.rig.update(dt);
+
+    // live oscilloscope readout, tinted by the current fate
+    if (this.scope.visible) {
+      const color =
+        s.outcome === "black-hole"
+          ? "#ff7a5c"
+          : s.outcome === "gravastar"
+            ? "#15d9f2"
+            : "#7fd0ff";
+      this.scope.draw(this.audio.getTimeDomain(), color, dt);
+    }
 
     this.renderer.render(this.scene, this.camera);
   }

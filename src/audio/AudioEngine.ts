@@ -146,6 +146,16 @@ export class AudioEngine {
     return this.started ? this.analyser.sample() : { bass: 0, mids: 0, highs: 0 };
   }
 
+  private timeData: Uint8Array | null = null;
+
+  /** Time-domain waveform for the oscilloscope (empty until audio starts). */
+  getTimeDomain(): Uint8Array {
+    if (!this.started) return new Uint8Array(0);
+    if (!this.timeData) this.timeData = new Uint8Array(this.analyserNode.fftSize);
+    this.analyserNode.getByteTimeDomainData(this.timeData as Uint8Array<ArrayBuffer>);
+    return this.timeData;
+  }
+
   update(state: SimulationState): void {
     if (!this.started || !this.ctx) return;
     const now = this.ctx.currentTime;

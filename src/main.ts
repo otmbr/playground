@@ -1,3 +1,5 @@
+import "@fontsource-variable/space-grotesk";
+import "@fontsource-variable/jetbrains-mono";
 import { App } from "./core/App.ts";
 
 const canvas = document.getElementById("webgl") as HTMLCanvasElement;
@@ -22,11 +24,11 @@ enterButton.addEventListener("click", async () => {
 // the star in the center is never hidden; a tap on the chevron expands them.
 function setPanelCollapsed(panel: HTMLElement, collapsed: boolean): void {
   panel.classList.toggle("collapsed", collapsed);
-  const toggle = panel.querySelector<HTMLButtonElement>(".panel-toggle");
-  if (toggle) {
-    toggle.setAttribute("aria-expanded", String(!collapsed));
-    toggle.textContent = collapsed ? "▸" : "▾";
-  }
+  // The chevron is an SVG rotated via CSS (.panel.collapsed); we only update
+  // the accessible state here.
+  panel
+    .querySelector<HTMLButtonElement>(".panel-toggle")
+    ?.setAttribute("aria-expanded", String(!collapsed));
 }
 const panels = Array.from(document.querySelectorAll<HTMLElement>(".panel"));
 for (const btn of document.querySelectorAll<HTMLButtonElement>(".panel-toggle")) {

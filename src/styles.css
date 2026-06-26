@@ -7,6 +7,8 @@
   --accent: #7fd0ff;
   --grav: #6fb8ff;
   --bh: #ff7a5c;
+  --display: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
+  --mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
 }
 
 * {
@@ -21,8 +23,9 @@ body {
   overflow: hidden;
   background: var(--bg);
   color: var(--fg);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-family: var(--display);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 #webgl {
@@ -92,7 +95,8 @@ body {
 /* ---------- panels ---------- */
 #hud,
 #controls,
-#legend {
+#legend,
+#science {
   position: fixed;
   border: 1px solid var(--border);
   background: var(--glass);
@@ -109,15 +113,18 @@ body {
   padding: 20px 22px;
 }
 #hud h1 {
-  font-size: 22px;
-  margin: 2px 0 8px;
-  letter-spacing: 0.06em;
+  font-size: 21px;
+  margin: 3px 0 8px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 .state {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
   margin: 0 0 12px;
   color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
 }
 .state[data-outcome="black-hole"] {
   color: var(--bh);
@@ -150,13 +157,27 @@ body {
 .panel-toggle {
   display: none; /* hidden on desktop */
   flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   padding: 0;
-  font-size: 16px;
-  line-height: 1;
   align-items: center;
   justify-content: center;
+  color: var(--fg);
+}
+.panel-toggle svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.22s ease;
+}
+/* down chevron when open, flips up when collapsed */
+.panel.collapsed .panel-toggle svg {
+  transform: rotate(180deg);
 }
 #controls .panel-body {
   display: grid;
@@ -203,12 +224,23 @@ body {
 .readout {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   border-top: 1px solid var(--border);
-  padding: 8px 0;
-  font-size: 13px;
+  padding: 7px 0;
+  font-size: 12px;
 }
 .readout span {
   color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 10px;
+}
+.readout strong {
+  font-family: var(--mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  letter-spacing: -0.01em;
 }
 
 .observer {
@@ -284,9 +316,11 @@ body[data-appmode="explore"] .advanced {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
   pointer-events: none;
 }
 .knob-dial.active {
@@ -362,6 +396,17 @@ button.primary {
   color: #c08bff;
 }
 
+/* ---------- oscilloscope ---------- */
+.scope {
+  display: block;
+  width: 100%;
+  height: 40px;
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.28);
+}
+
 /* ---------- captions ---------- */
 .captions {
   margin-top: 12px;
@@ -383,30 +428,120 @@ button.primary {
 }
 
 /* ---------- legend ---------- */
-#legend {
+#legend,
+#science {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: min(520px, 90vw);
-  max-height: 80vh;
+  width: min(540px, 92vw);
+  max-height: 82vh;
   overflow-y: auto;
   padding: 22px 24px;
+  z-index: 25;
 }
 .legend-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: sticky;
+  top: -22px;
+  margin: -22px -24px 0;
+  padding: 22px 24px 12px;
+  background: linear-gradient(180deg, rgba(8, 12, 28, 0.96), rgba(8, 12, 28, 0.6));
+  backdrop-filter: blur(8px);
 }
 .legend-head h2 {
   font-size: 18px;
   margin: 0;
+  letter-spacing: -0.01em;
 }
-#legendClose {
-  flex: 0;
+#legendClose,
+#scienceClose {
+  flex: 0 0 auto;
   width: 34px;
+  height: 34px;
   font-size: 20px;
   line-height: 1;
   padding: 0;
+}
+
+/* ---------- science panel ---------- */
+.science-body {
+  display: block;
+}
+.science-body h3 {
+  font-size: 15px;
+  margin: 18px 0 6px;
+  letter-spacing: -0.01em;
+}
+.science-body p {
+  margin: 0 0 8px;
+  font-size: 13.5px;
+  line-height: 1.62;
+  color: rgba(244, 247, 255, 0.84);
+}
+.science-body code {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--accent);
+  background: rgba(127, 208, 255, 0.1);
+  padding: 1px 5px;
+  border-radius: 5px;
+}
+.sci-tag {
+  display: inline-flex;
+  margin-top: 6px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+.sci-tag.accepted {
+  border-color: rgba(120, 255, 180, 0.5);
+  color: #9bffcb;
+}
+.sci-tag.theoretical {
+  border-color: rgba(127, 208, 255, 0.5);
+  color: var(--accent);
+}
+.sci-tag.visual-metaphor {
+  border-color: rgba(192, 139, 255, 0.5);
+  color: #c08bff;
+}
+.sci-list {
+  margin: 4px 0 8px;
+  padding-left: 18px;
+  display: grid;
+  gap: 5px;
+}
+.sci-list li {
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(244, 247, 255, 0.84);
+}
+.sci-list strong {
+  color: var(--fg);
+}
+.sci-note {
+  font-size: 12px !important;
+  color: var(--muted) !important;
+  border-left: 2px solid var(--border);
+  padding-left: 10px;
+}
+.sci-sources {
+  display: grid;
+  gap: 8px;
+}
+.sci-sources a {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.sci-sources a:hover {
+  text-decoration: underline;
 }
 #legendList {
   list-style: none;
@@ -461,12 +596,6 @@ button.primary {
   #hud.panel.collapsed .panel-body,
   #controls.panel.collapsed .panel-body {
     display: none;
-  }
-  .panel-toggle {
-    transition: transform 0.2s ease;
-  }
-  .panel.collapsed .panel-toggle {
-    transform: rotate(-90deg);
   }
 
   #hud {

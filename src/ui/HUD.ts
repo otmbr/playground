@@ -27,10 +27,22 @@ export class HUD {
   private captions = $("captions");
   private legend = $("legend");
   private legendList = $("legendList");
+  private science = $("science");
 
   constructor() {
     this.buildLegend();
     $("legendClose").addEventListener("click", () => this.toggleLegend(false));
+    $("scienceClose").addEventListener("click", () => this.toggleScience(false));
+  }
+
+  toggleScience(force?: boolean): void {
+    const show = force ?? this.science.hasAttribute("hidden");
+    if (show) {
+      this.science.removeAttribute("hidden");
+      this.legend.setAttribute("hidden", "");
+    } else {
+      this.science.setAttribute("hidden", "");
+    }
   }
 
   private buildLegend(): void {

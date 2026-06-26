@@ -53,7 +53,9 @@
             <h1>GRAVASTAR LAB</h1>
             <p id="stateLabel" class="state">Stable star</p>
           </div>
-          <button class="panel-toggle" data-target="hud" aria-label="Details ein-/ausklappen" aria-expanded="true">▾</button>
+          <button class="panel-toggle" data-target="hud" aria-label="Details ein-/ausklappen" aria-expanded="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+          </button>
         </div>
 
         <div class="panel-body">
@@ -84,6 +86,8 @@
 
         <div id="speculationBadge" class="badge theoretical">Theoretical model</div>
 
+        <canvas id="scope" class="scope" width="560" height="80" aria-hidden="true"></canvas>
+
         <div id="captions" class="captions" aria-live="polite"></div>
         </div>
       </section>
@@ -96,7 +100,9 @@
             <button class="mode active" data-mode="explore">Explore</button>
             <button class="mode" data-mode="lab">Lab</button>
           </div>
-          <button class="panel-toggle" data-target="controls" aria-label="Bedienfeld ein-/ausklappen" aria-expanded="true">▾</button>
+          <button class="panel-toggle" data-target="controls" aria-label="Bedienfeld ein-/ausklappen" aria-expanded="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+          </button>
         </div>
 
         <div class="panel-body">
@@ -117,13 +123,87 @@
         </div>
         <div class="buttons">
           <button id="interiorButton" disabled>Enter Interior</button>
-          <button id="honestyButton">Speculation Labels</button>
+          <button id="scienceButton">Science</button>
+        </div>
+        <div class="buttons">
+          <button id="honestyButton">Labels</button>
+          <button id="shareButton">Share Seed</button>
         </div>
         <div class="buttons">
           <button id="muteButton" aria-pressed="false">Mute</button>
-          <button id="shareButton">Share Seed</button>
         </div>
         </div>
+      </section>
+
+      <!-- Scientific context (toggled) -->
+      <section id="science" hidden>
+        <div class="legend-head">
+          <h2>The Science</h2>
+          <button id="scienceClose" aria-label="Close">×</button>
+        </div>
+
+        <article class="science-body">
+          <span class="sci-tag theoretical">Theoretical</span>
+          <h3>What is a gravastar?</h3>
+          <p>
+            A <strong>grava</strong>tational <strong>va</strong>cuum
+            <strong>star</strong> is a hypothetical ultra-compact object: from
+            far away almost indistinguishable from a black hole, but
+            <em>without</em> a classical singularity or event horizon. Its
+            interior is filled with a dark-energy-like vacuum whose outward
+            pressure balances gravity.
+          </p>
+
+          <span class="sci-tag theoretical">Theoretical · 2026</span>
+          <h3>The Frankfurt formation idea</h3>
+          <p>
+            Daniel&nbsp;Jampolski and Luciano&nbsp;Rezzolla (Goethe University
+            Frankfurt, 2026) describe — within Einstein's General Relativity —
+            a way a gravastar could <em>form dynamically</em> during collapse:
+            a <strong>de&nbsp;Sitter-like region</strong> nucleates at the
+            centre, starting at effectively zero size and expanding outward
+            like a mini-universe. The expansion slows near the Schwarzschild
+            radius and can meet the infalling matter in a static equilibrium —
+            a shell. Under other conditions, collapse to a black hole stays
+            inevitable.
+          </p>
+
+          <span class="sci-tag accepted">Accepted</span>
+          <h3>Compactness &amp; the three fates</h3>
+          <p>
+            Compactness is the ratio
+            <code>C = r<sub>s</sub> / 2R</code> of the Schwarzschild radius to
+            the object's size. The closer <code>C</code> approaches 0.5, the
+            nearer the surface sits to forming a horizon. This app reads
+            <code>C</code> live and resolves one of three outcomes:
+          </p>
+          <ul class="sci-list">
+            <li><strong>Stable star</strong> — gravity and pressure balance (low C).</li>
+            <li><strong>Black hole</strong> — gravity wins; a horizon &amp; photon ring form.</li>
+            <li><strong>Gravastar</strong> — vacuum pressure halts collapse; a shell + expanding interior appear.</li>
+          </ul>
+
+          <span class="sci-tag visual-metaphor">Toy model</span>
+          <h3>What the dials mean</h3>
+          <ul class="sci-list">
+            <li><strong>Mass</strong> — sets the Schwarzschild radius (real GR).</li>
+            <li><strong>Radius</strong> — how compressed the star is → compactness.</li>
+            <li><strong>Vacuum&nbsp;Energy</strong> — dark-energy-like outward push of the interior.</li>
+            <li><strong>Shell&nbsp;Tension</strong> — stability of the balance boundary.</li>
+            <li><strong>Quantum&nbsp;Noise</strong> — instability / uncertainty near the limit.</li>
+            <li><strong>Entropy&nbsp;Leakage</strong> — how information behaves at the boundary.</li>
+          </ul>
+          <p class="sci-note">
+            The outcome thresholds here are artistic toy-model values inspired
+            by the literature — not physical predictions.
+          </p>
+
+          <h3>Sources</h3>
+          <p class="sci-sources">
+            <a href="https://www.uni-frankfurt.de/de/newsroom/meldungen/pressemitteilungen/2026/urknall-im-innern-eines-sterns-wie-ein-gravastern-entsteht" target="_blank" rel="noopener">Goethe University Frankfurt — press release (2026) ↗</a>
+            <a href="https://arxiv.org/abs/2509.15302" target="_blank" rel="noopener">Jampolski &amp; Rezzolla, “Formation of gravastars”, Phys. Rev. D 113, L121502 · arXiv:2509.15302 ↗</a>
+          </p>
+        </article>
       </section>
 
       <!-- Speculation label legend (toggled) -->

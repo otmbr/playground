@@ -12,8 +12,10 @@ export interface KnobOptions {
   value: number;
   color?: string;
   advanced?: boolean;
+  hint?: string;
   format: (v: number) => string;
   onInput: (v: number) => void;
+  onHint?: (hint: string) => void;
 }
 
 const SVGNS = "http://www.w3.org/2000/svg";
@@ -87,8 +89,13 @@ export class Knob {
       this.startY = e.clientY;
       this.startValue = this.value;
       this.dial.classList.add("active");
+      if (this.o.hint && this.o.onHint) this.o.onHint(this.o.hint);
       e.preventDefault();
     });
+    this.dial.addEventListener("focus", () => {
+      if (this.o.hint && this.o.onHint) this.o.onHint(this.o.hint);
+    });
+    if (this.o.hint) this.dial.title = this.o.hint;
     this.dial.addEventListener("pointermove", (e) => {
       if (!this.dragging) return;
       const dy = this.startY - e.clientY;

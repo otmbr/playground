@@ -15,10 +15,25 @@ export interface ControlCallbacks {
   onReset: () => void;
   onEnterInterior: () => void;
   onToggleHonesty: () => void;
+  onScience: () => void;
   onToggleMute: () => void;
   onShare: () => void;
   onObserver: (mode: ObserverMode) => void;
   onMode: (mode: AppMode) => void;
+  onHint: (hint: string) => void;
+}
+
+interface KnobDef {
+  key: keyof SimulationState;
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  color: string;
+  hint: string;
+  format: (v: number) => string;
+  advanced?: boolean;
+  onInput?: (v: number) => void;
 }
 
 export class Controls {
@@ -36,6 +51,7 @@ export class Controls {
     el("resetButton").addEventListener("click", () => this.cb.onReset());
     this.interiorButton.addEventListener("click", () => this.cb.onEnterInterior());
     el("honestyButton").addEventListener("click", () => this.cb.onToggleHonesty());
+    el("scienceButton").addEventListener("click", () => this.cb.onScience());
     this.muteButton.addEventListener("click", () => this.cb.onToggleMute());
     el("shareButton").addEventListener("click", () => this.cb.onShare());
 
@@ -62,62 +78,104 @@ export class Controls {
     const grid = el("knobGrid");
     const s = this.store.state;
 
-    const make = (
-      key: keyof SimulationState,
-      label: string,
-      min: number,
-      max: number,
-      step: number,
-      color: string,
-      format: (v: number) => string,
-      advanced = false,
-      onInput?: (v: number) => void,
-    ) => {
+    const sun = " M☉";
+    const defs: KnobDef[] = [
+      {
+        key: "massSolar",
+        label: "Mass",
+        min: 3,
+        max: 50,
+        step: 0.1,
+        color: "#7fd0ff",
+        hint: "Mass sets the Schwarzschild radius rₛ (real GR): rₛ = 2GM/c².",
+        format: (v) => `${v.toFixed(1)}${sun}`,
+      },
+      {
+        key: "radiusKm",
+        label: "Radius",
+        min: 5,
+        max: 250,
+        step: 0.5,
+        color: "#7fd0ff",
+        hint: "How compressed the star is. Smaller radius → higher compactness C = rₛ/2R.",
+        format: (v) => `${v < 10 ? v.toFixed(1) : Math.round(v)} km`,
+        // Radius writes both radius and initial radius, but only when idle so
+        // it does not fight the collapse animation.
+        onInput: (v) =>
+          this.store.update((st) => {
+            if (st.collapsing) return;
+            st.radiusKm = v;
+            st.initialRadiusKm = v;
+            recomputeDerived(st);
+          }),
+      },
+      {
+        key: "vacuumEnergy",
+        label: "Vacuum",
+        min: 0,
+        max: 1,
+        step: 0.001,
+        color: "#15d9f2",
+        hint: "Dark-energy-like outward pressure of the interior — what can halt collapse.",
+        format: (v) => v.toFixed(2),
+      },
+      {
+        key: "shellTension",
+        label: "Shell",
+        min: 0,
+        max: 1,
+        step: 0.001,
+        color: "#c08bff",
+        hint: "Stability of the balance boundary between infall and outward expansion.",
+        format: (v) => v.toFixed(2),
+      },
+      {
+        key: "quantumNoise",
+        label: "Noise",
+        min: 0,
+        max: 1,
+        step: 0.001,
+        color: "#ffb070",
+        hint: "Instability / uncertainty near the limit — pushes toward collapse.",
+        format: (v) => v.toFixed(2),
+        advanced: true,
+      },
+      {
+        key: "entropyLeakage",
+        label: "Entropy",
+        min: 0,
+        max: 1,
+        step: 0.001,
+        color: "#ff6fae",
+        hint: "How information behaves at the boundary — freezes at a horizon, sticks to a shell.",
+        format: (v) => v.toFixed(2),
+        advanced: true,
+      },
+    ];
+
+    for (const d of defs) {
       const knob = new Knob({
-        label,
-        min,
-        max,
-        step,
-        value: s[key] as number,
-        color,
-        advanced,
-        format,
+        label: d.label,
+        min: d.min,
+        max: d.max,
+        step: d.step,
+        value: s[d.key] as number,
+        color: d.color,
+        advanced: d.advanced,
+        hint: d.hint,
+        onHint: (h) => this.cb.onHint(h),
+        format: d.format,
         onInput:
-          onInput ??
+          d.onInput ??
           ((v) =>
             this.store.update((st) => {
-              (st as unknown as Record<string, number>)[key as string] = v;
+              (st as unknown as Record<string, number>)[d.key as string] = v;
               recomputeDerived(st);
             })),
       });
-      this.knobs[key as string] = knob;
+      this.knobs[d.key as string] = knob;
       grid.appendChild(knob.el);
-    };
-
-    make("massSolar", "Mass", 3, 50, 0.1, "#7fd0ff", (v) => `${v.toFixed(1)} M☉`);
-    // Radius writes both radius and initial radius, but only when idle so it
-    // does not fight the collapse animation.
-    make(
-      "radiusKm",
-      "Radius",
-      5,
-      250,
-      0.5,
-      "#7fd0ff",
-      (v) => `${v < 10 ? v.toFixed(1) : Math.round(v)} km`,
-      false,
-      (v) =>
-        this.store.update((st) => {
-          if (st.collapsing) return;
-          st.radiusKm = v;
-          st.initialRadiusKm = v;
-          recomputeDerived(st);
-        }),
-    );
-    make("vacuumEnergy", "Vacuum", 0, 1, 0.001, "#15d9f2", (v) => v.toFixed(2));
-    make("shellTension", "Shell", 0, 1, 0.001, "#c08bff", (v) => v.toFixed(2));
-    make("quantumNoise", "Noise", 0, 1, 0.001, "#ffb070", (v) => v.toFixed(2), true);
-    make("entropyLeakage", "Entropy", 0, 1, 0.001, "#ff6fae", (v) => v.toFixed(2), true);
+    }
   }
 
   setInteriorEnabled(enabled: boolean): void {
