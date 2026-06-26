@@ -1,11 +1,14 @@
 :root {
   --bg: #000000;
-  --signal: #39ff8b;      /* neon green */
+  --signal: #39ff8b;      /* neon green — the signal */
+  --dub: #f5b042;         /* warm amber — dub / bass / city */
   --deep: #0a2a4a;        /* deep blue */
   --deep-glow: #1e6fff;
   --noise: #7a8aa0;
   --warn: #ff4d5e;
+  /* mono for data/HUD; a tight grotesk for display type — modern contrast */
   --font: "SF Mono", ui-monospace, "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --font-display: "Inter", "Helvetica Neue", "Segoe UI", system-ui, -apple-system, "Arial Narrow", sans-serif;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -67,11 +70,16 @@ html, body {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  font-size: clamp(28px, 11vw, 64px);
-  letter-spacing: 0.16em;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: clamp(30px, 12vw, 68px);
+  letter-spacing: 0.01em;
+  font-weight: 800;
   color: var(--signal);
-  text-shadow: 0 0 24px rgba(57, 255, 139, 0.55), 0 0 60px rgba(30, 111, 255, 0.25);
+  /* glow + a dub-delay echo trailing down-right */
+  text-shadow:
+    0 0 24px rgba(57, 255, 139, 0.55),
+    0 0 60px rgba(30, 111, 255, 0.22),
+    0.09em 0.08em 0 rgba(245, 176, 66, 0.12);
   opacity: 0;
   transition: opacity 0.45s ease;
   text-align: center;
@@ -97,7 +105,10 @@ html, body {
   padding:
     max(20px, env(safe-area-inset-top)) 22px
     max(22px, env(safe-area-inset-bottom)) 22px;
-  background: radial-gradient(circle at 50% 42%, rgba(10, 42, 74, 0.35), rgba(0,0,0,0.92) 72%);
+  /* dub texture: faint scanlines over a deep vignette */
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.022) 0 1px, transparent 1px 3px),
+    radial-gradient(125% 80% at 50% 36%, rgba(10, 42, 74, 0.42) 0%, rgba(2, 4, 10, 0.97) 70%);
   -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
 }
@@ -130,23 +141,34 @@ html, body {
 .mode-btn { margin-top: 0; }
 
 h1 {
-  font-size: clamp(34px, 13vw, 76px);
-  letter-spacing: 0.12em;
+  font-family: var(--font-display);
+  font-size: clamp(32px, 11.5vw, 72px);
+  letter-spacing: -0.02em;
+  line-height: 0.9;
   font-weight: 800;
+  max-width: 100%;
   color: var(--signal);
-  text-shadow: 0 0 30px rgba(57, 255, 139, 0.5), 0 0 80px rgba(30, 111, 255, 0.3);
+  /* glow + stacked dub-delay echoes (green → amber, fading) */
+  text-shadow:
+    0 0 30px rgba(57, 255, 139, 0.42),
+    0 0 80px rgba(30, 111, 255, 0.28),
+    0.06em 0.05em 0 rgba(57, 255, 139, 0.13),
+    0.11em 0.09em 0 rgba(245, 176, 66, 0.09);
 }
 h2 {
-  font-size: clamp(16px, 5vw, 24px);
-  letter-spacing: 0.3em;
+  font-family: var(--font-display);
+  font-size: clamp(15px, 4.6vw, 22px);
+  letter-spacing: 0.12em;
+  font-weight: 700;
   color: var(--noise);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 .tagline {
-  font-size: clamp(13px, 4vw, 16px);
-  letter-spacing: 0.22em;
-  color: var(--deep-glow);
-  opacity: 0.9;
+  font-size: clamp(12px, 3.6vw, 15px);
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--dub);
+  opacity: 0.92;
 }
 .hint {
   font-size: 13px;
@@ -174,12 +196,13 @@ button {
   max-width: 320px;
   min-height: 60px;
   padding: 18px 32px;
-  font-size: 18px;
-  letter-spacing: 0.3em;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 19px;
+  letter-spacing: 0.18em;
+  font-weight: 800;
   color: #000;
   background: var(--signal);
-  border-radius: 4px;
+  border-radius: 6px;
   box-shadow: 0 0 30px rgba(57, 255, 139, 0.5);
   transition: transform 0.12s ease, box-shadow 0.2s ease;
 }
@@ -189,17 +212,44 @@ button {
   max-width: 320px;
   min-height: 52px;
   padding: 14px 28px;
-  font-size: 13px;
-  letter-spacing: 0.26em;
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  font-weight: 700;
   color: var(--signal);
   background: transparent;
   border: 1px solid rgba(57, 255, 139, 0.45);
-  border-radius: 4px;
+  border-radius: 6px;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 .btn-ghost:active { background: rgba(57, 255, 139, 0.12); border-color: var(--signal); }
 
-/* segmented length selector */
+/* CITY DUB wears the warm dub accent to set it apart from the green LOW RUN */
+#btn-citydub { color: var(--dub); border-color: rgba(245, 176, 66, 0.5); }
+#btn-citydub:active { background: rgba(245, 176, 66, 0.12); border-color: var(--dub); }
+
+/* length selector */
+.seg-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+.seg-label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 9px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--noise);
+  opacity: 0.55;
+}
+.seg-unit {
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  opacity: 0.7;
+}
 .seg {
   display: inline-flex;
   gap: 6px;
@@ -209,12 +259,13 @@ button {
   border: 1px solid rgba(122, 138, 160, 0.22);
 }
 .seg-opt {
-  min-width: 56px;
+  min-width: 58px;
   min-height: 38px;
   padding: 8px 14px;
-  font-size: 12px;
-  letter-spacing: 0.14em;
+  font-size: 13px;
+  letter-spacing: 0.06em;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   color: var(--noise);
   background: transparent;
   border-radius: 999px;
@@ -224,6 +275,10 @@ button {
   color: #000;
   background: var(--signal);
   box-shadow: 0 0 16px rgba(57, 255, 139, 0.4);
+}
+#seg-citydub .seg-opt.is-active {
+  background: var(--dub);
+  box-shadow: 0 0 16px rgba(245, 176, 66, 0.4);
 }
 
 #report-body {

@@ -33,20 +33,26 @@
       <div class="mode-card">
         <button id="btn-reduce" class="btn-primary">REDUCE</button>
         <p class="micro">LOW RUN · tilt · hold · swipe · tap · stillness</p>
-        <div class="seg" id="seg-lowrun" role="group" aria-label="Run length">
-          <button class="seg-opt" type="button" data-sec="60">60s</button>
-          <button class="seg-opt is-active" type="button" data-sec="90">90s</button>
-          <button class="seg-opt" type="button" data-sec="120">2m</button>
+        <div class="seg-row">
+          <span class="seg-label">Length<span class="seg-unit">min:sec</span></span>
+          <div class="seg" id="seg-lowrun" role="group" aria-label="Run length">
+            <button class="seg-opt" type="button" data-sec="60">1:00</button>
+            <button class="seg-opt is-active" type="button" data-sec="90">1:30</button>
+            <button class="seg-opt" type="button" data-sec="120">2:00</button>
+          </div>
         </div>
       </div>
 
       <div class="mode-card">
         <button id="btn-citydub" class="btn-ghost mode-btn">CITY DUB</button>
         <p class="micro">walk · the street composes the track · auto</p>
-        <div class="seg" id="seg-citydub" role="group" aria-label="Walk length">
-          <button class="seg-opt" type="button" data-min="3">3m</button>
-          <button class="seg-opt is-active" type="button" data-min="5">5m</button>
-          <button class="seg-opt" type="button" data-min="10">10m</button>
+        <div class="seg-row">
+          <span class="seg-label">Length<span class="seg-unit">min:sec</span></span>
+          <div class="seg" id="seg-citydub" role="group" aria-label="Walk length">
+            <button class="seg-opt" type="button" data-min="3">3:00</button>
+            <button class="seg-opt is-active" type="button" data-min="5">5:00</button>
+            <button class="seg-opt" type="button" data-min="10">10:00</button>
+          </div>
         </div>
       </div>
 

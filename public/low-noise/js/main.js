@@ -88,6 +88,7 @@ async function startCityDub() {
 
 function showReport(report, blob) {
   releaseWakeLock();
+  clearHud(); // drop the leftover HUD line so it doesn't bleed under the report
   lastReport = report;
   lastBlob = blob;
   $("report-body").textContent = report.text;
