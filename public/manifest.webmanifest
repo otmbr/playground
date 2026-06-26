@@ -1,0 +1,19 @@
+{
+  "name": "GRAVASTAR LAB",
+  "short_name": "Gravastar",
+  "description": "Interactive Three.js toy model of gravastar formation, black holes, and a mini Big Bang inside a collapsing star.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#02030a",
+  "theme_color": "#02030a",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
